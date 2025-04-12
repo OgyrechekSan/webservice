@@ -1,10 +1,9 @@
+// UserService.java
 package com.example.webservice.services;
 
 import com.example.webservice.models.User;
 import com.example.webservice.models.enums.Role;
 import com.example.webservice.repositories.UserRepository;
-import com.example.webservice.configurations.SecurityConfig;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,12 +17,15 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public boolean createUser(User user) {
-        String email = user.getEmail();
-        if (userRepository.findByEmail(user.getEmail()) != null) return false;
+        if (userRepository.findByEmail(user.getEmail()) != null) {
+            return false;
+        }
+
         user.setActive(true);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.getRoles().add(Role.ROLE_USER);
-        log.info("Saving new User with email :{}",email);
+
+        log.info("Saving new User with email: {}", user.getEmail());
         userRepository.save(user);
         return true;
     }

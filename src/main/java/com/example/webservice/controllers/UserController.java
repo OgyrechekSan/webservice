@@ -1,3 +1,4 @@
+// UserController.java
 package com.example.webservice.controllers;
 
 import com.example.webservice.models.User;
@@ -23,12 +24,11 @@ public class UserController {
         return "registration";
     }
 
-
     @PostMapping("/registration")
     public String createUser(User user, Model model) {
-        if(!userService.createUser(user)){
-            model.addAttribute("errorMessage","Пользователь с email: "
-                    + user.getEmail() + "уже существует");
+        if (!userService.createUser(user)) {
+            model.addAttribute("errorMessage",
+                    "Пользователь с email: " + user.getEmail() + " уже существует");
             return "registration";
         }
         return "redirect:/login";
