@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.Principal;
 
 @Controller
 @RequiredArgsConstructor//убираем конструктор
@@ -16,8 +17,9 @@ public class ProductController {//отвечает за приёмы http зап
     private final ProductService productService;//final чтобы spring при создании бина сразу его инджектит
 
     @GetMapping("/")//при переходе на локальный хост будет вызываться данный метод
-    public String products(@RequestParam(name = "title", required = false) String title, Model model){//для передачи параметров в шаблонизатор
+    public String products(@RequestParam(name = "title", required = false) String title, Principal principal,Model model){//для передачи параметров в шаблонизатор
         model.addAttribute("products", productService.listProducts(title));
+        model.addAttribute("user", productService.getUserByPrincipal(principal));
         return "products";//возвращение представления products(в template валяется)
     }
 
@@ -34,9 +36,10 @@ public class ProductController {//отвечает за приёмы http зап
 
 
     @PostMapping("/product/create")
-    public String CreateProduct(@RequestParam("file1") MultipartFile file1,@RequestParam("file2") MultipartFile file2,
-                                @RequestParam("file3") MultipartFile file3,Product product) throws IOException {
-        productService.saveProduct(product, file1, file2, file3);
+    public String CreateProduct(@RequestParam("file1") MultipartFile file1, @RequestParam("file2") MultipartFile file2,
+                                @RequestParam("file3") MultipartFile file3, Product product, Principal principal)
+            throws IOException {
+        productService.saveProduct(principal,product, file1, file2, file3);
         return "redirect:/";
     }
 
