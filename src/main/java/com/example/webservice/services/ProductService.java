@@ -66,8 +66,18 @@ public class ProductService {
         return image;
     }
 
-    public void deleteProduct(Long id) {
-        productRepository.deleteById(id);
+    public void deleteProduct(User user, Long id) {
+        Product product = productRepository.findById(id).orElse(null);
+        if (product != null) {
+            if (product.getUser().getEmail().equals(user.getId())) {
+                productRepository.delete(product);
+                log.info("Deleted product with id: {}", id);
+            } else {
+                log.error("User: {} haven't this product with id = {}", user.getId(), id);
+            }
+        } else {
+            log.error("Product with id {} not found", id);
+        }
     }
 
     public Product getProductById(Long id) {

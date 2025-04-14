@@ -1,6 +1,7 @@
 package com.example.webservice.controllers;
 
 import com.example.webservice.models.Product;
+import com.example.webservice.models.User;
 import com.example.webservice.services.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -17,20 +18,20 @@ public class ProductController {//отвечает за приёмы http зап
     private final ProductService productService;//final чтобы spring при создании бина сразу его инджектит
 
     @GetMapping("/")//при переходе на локальный хост будет вызываться данный метод
-    public String products(@RequestParam(name = "title", required = false) String title, Principal principal,Model model){//для передачи параметров в шаблонизатор
+    public String products(@RequestParam(name = "searchWord", required = false) String title, Principal principal,Model model){//для передачи параметров в шаблонизатор
         model.addAttribute("products", productService.listProducts(title));
         model.addAttribute("user", productService.getUserByPrincipal(principal));
+        model.addAttribute("searchWord", title);
         return "products";//возвращение представления products(в template валяется)
     }
 
-    @GetMapping("/product/{id}")  // Изменили на GET для просмотра информации
-    public String productInfo(@PathVariable Long id, Model model) {
+    @GetMapping("/product/{id}")
+    public String productInfo(@PathVariable Long id, Model model, Principal principal) {
         Product product = productService.getProductById(id);
-        if (product == null) {
-            return "redirect:/";
-        }
+        model.addAttribute("user", productService.getUserByPrincipal(principal));
         model.addAttribute("product", product);
         model.addAttribute("images", product.getImages());
+        model.addAttribute("authorProduct", product.getUser());
         return "product-info";
     }
 
@@ -40,12 +41,20 @@ public class ProductController {//отвечает за приёмы http зап
                                 @RequestParam("file3") MultipartFile file3, Product product, Principal principal)
             throws IOException {
         productService.saveProduct(principal,product, file1, file2, file3);
-        return "redirect:/";
+        return "redirect:/my/products";
     }
 
     @PostMapping("/product/delete/{id}")
-    public String deleteProduct(@PathVariable Long id){
-        productService.deleteProduct(id);
+    public String deleteProduct(@PathVariable Long id, Principal principal) {
+        productService.deleteProduct(productService.getUserByPrincipal(principal), id);
         return "redirect:/";
+    }
+
+    @GetMapping("/my/products")
+    public String userProducts(Model model, Principal principal) {
+        User user = productService.getUserByPrincipal(principal);
+        model.addAttribute("user", user);
+        model.addAttribute("products", user.getProduct());
+        return "my-products";
     }
 }
