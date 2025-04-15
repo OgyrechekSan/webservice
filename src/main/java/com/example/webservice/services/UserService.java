@@ -1,6 +1,8 @@
 package com.example.webservice.services;
 
+import com.example.webservice.models.Image;
 import com.example.webservice.models.User;
+import com.example.webservice.models.Product;
 import com.example.webservice.models.enums.Role;
 import com.example.webservice.repositories.ImageRepository;
 import com.example.webservice.repositories.ProductRepository;
@@ -87,12 +89,20 @@ public class UserService {
             throw new IllegalStateException("Cannot delete the last admin");
         }
 
-        // Удаляем все связанные данные
-        productRepository.deleteAll(user.getProducts());
+        // Удаляем все продукты пользователя и их изображения
+        for (Product product : user.getProducts()) {
+            // Удаляем все изображения продукта
+            imageRepository.deleteAll(product.getImages());
+            // Удаляем сам продукт
+            productRepository.delete(product);
+        }
+
+        // Удаляем аватар пользователя, если он есть
         if (user.getAvatar() != null) {
             imageRepository.delete(user.getAvatar());
         }
 
+        // Удаляем самого пользователя
         userRepository.delete(user);
     }
 }

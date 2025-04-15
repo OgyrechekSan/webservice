@@ -48,4 +48,16 @@ public class AdminController {
         userService.changeUserRoles(user, form);
         return "redirect:/admin";
     }
+
+    @PostMapping("/admin/user/delete/{id}")
+    public String adminDeleteUser(@PathVariable Long id) {
+        try {
+            userService.deleteUser(id);
+            return "redirect:/admin?success=Пользователь успешно удалён";
+        } catch (IllegalStateException e) {
+            return "redirect:/admin?error=" + e.getMessage();
+        } catch (Exception e) {
+            return "redirect:/admin?error=Ошибка при удалении пользователя";
+        }
+    }
 }
