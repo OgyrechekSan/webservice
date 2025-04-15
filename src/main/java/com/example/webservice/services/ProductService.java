@@ -3,10 +3,13 @@ package com.example.webservice.services;
 import com.example.webservice.models.Image;
 import com.example.webservice.models.Product;
 import com.example.webservice.models.User;
+import com.example.webservice.repositories.ImageRepository;
 import com.example.webservice.repositories.ProductRepository;
 import com.example.webservice.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,6 +23,7 @@ import java.util.List;
 public class ProductService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final ImageRepository imageRepository;
 
     public List<Product> listProducts(String title) {
         if (title != null) return productRepository.findByTitle(title);
@@ -66,18 +70,23 @@ public class ProductService {
         return image;
     }
 
+    @Transactional
     public void deleteProduct(User user, Long id) {
-        Product product = productRepository.findById(id).orElse(null);
-        if (product != null) {
-            if (product.getUser().getEmail().equals(user.getId())) {
-                productRepository.delete(product);
-                log.info("Deleted product with id: {}", id);
-            } else {
-                log.error("User: {} haven't this product with id = {}", user.getId(), id);
-            }
-        } else {
-            log.error("Product with id {} not found", id);
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.error("Product with id {} not found", id);
+                    return new IllegalArgumentException("Товар не найден");
+                });
+
+        if (!product.getUser().getId().equals(user.getId()) && !user.isAdmin()) {
+            log.error("User {} is not owner of product {}", user.getId(), id);
+            throw new AccessDeniedException("Нет прав для удаления этого товара");
         }
+
+        // Удаляем товар - изображения удалятся каскадно
+        productRepository.delete(product);
+
+        log.info("Product {} deleted by user {}", id, user.getId());
     }
 
     public Product getProductById(Long id) {

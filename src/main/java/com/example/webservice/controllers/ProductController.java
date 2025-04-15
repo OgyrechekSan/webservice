@@ -4,6 +4,7 @@ import com.example.webservice.models.Product;
 import com.example.webservice.models.User;
 import com.example.webservice.services.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -45,16 +46,25 @@ public class ProductController {//отвечает за приёмы http зап
     }
 
     @PostMapping("/product/delete/{id}")
-    public String deleteProduct(@PathVariable Long id, Principal principal) {
-        productService.deleteProduct(productService.getUserByPrincipal(principal), id);
-        return "redirect:/";
+    public String deleteProduct(@PathVariable Long id, Principal principal, Model model) {
+        try {
+            User user = productService.getUserByPrincipal(principal);
+            productService.deleteProduct(user, id);
+            return "redirect:/my/products?deleteSuccess=true";
+        } catch (AccessDeniedException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "redirect:/my/products?error=accessDenied";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Ошибка при удалении товара");
+            return "redirect:/my/products?error=deleteFailed";
+        }
     }
 
     @GetMapping("/my/products")
     public String userProducts(Model model, Principal principal) {
         User user = productService.getUserByPrincipal(principal);
         model.addAttribute("user", user);
-        model.addAttribute("products", user.getProduct());
+        model.addAttribute("products", user.getProducts());
         return "my-products";
     }
 }

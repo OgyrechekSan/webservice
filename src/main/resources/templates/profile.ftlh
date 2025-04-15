@@ -25,11 +25,15 @@
            href="/my/products">
             Мои товары
         </a>
-        <form action="/logout" method="post">
-            <input type="hidden" name="_csrf" value="${_csrf.token}"/>
-            <button type="submit" style="text-align: center; width: 100%" class="btn btn-danger mb-2">
-                Выйти из аккаунта
-            </button>
+        <form action="/logout" method="post" class="mb-2">
+            <input type="hidden" name="_csrf" value="${_csrf.token}">
+            <button type="submit" class="btn btn-secondary">Выйти из аккаунта</button>
+        </form>
+
+        <form action="/user/delete/${user.id}" method="post"
+              onsubmit="return confirm('ВНИМАНИЕ! Все ваши товары будут удалены. Вы уверены?')">
+            <input type="hidden" name="_csrf" value="${_csrf.token}">
+            <button type="submit" class="btn btn-danger">Удалить аккаунт</button>
         </form>
     </div>
 </@t.template>

@@ -10,6 +10,16 @@
         <h2>${user.name}</h2>
         <br>
         Номер телефона: <b>${user.phoneNumber}</b>
+        <#if userByPrincipal.isAdmin() || userByPrincipal.id == user.id>
+            <div class="mt-4">
+                <form action="/user/delete/${user.id}" method="post" onsubmit="return confirm('Вы точно хотите удалить этот аккаунт?')">
+                    <input type="hidden" name="_csrf" value="${_csrf.token}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt"></i> Удалить аккаунт
+                    </button>
+                </form>
+            </div>
+        </#if>
     </div>
     <br>
     <hr>
@@ -19,7 +29,6 @@
         <#list products as product>
             <a href="/product/${product.id}" class="product-link">
                 <div class="card text-white bg-dark my-3 product">
-
                     <img src="/images/${product.previewImageId}"
                          class="card-img-top">
                     <div class="card-body">

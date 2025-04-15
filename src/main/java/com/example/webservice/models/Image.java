@@ -28,6 +28,7 @@ public class Image {
     @Column(columnDefinition = "LONGBLOB")
     private byte[] bytes;//это поле будет хранится в LONGBLOB
 
-    @ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
     private Product product;
 }

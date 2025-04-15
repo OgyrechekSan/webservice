@@ -1,5 +1,5 @@
 <#import "blocks/template.ftlh" as t>
-<@t.template user>
+<@t.template user!{}>
     <h1 style="text-align: center">Авторизация</h1>
     <hr>
     <form action="/login " method="post">

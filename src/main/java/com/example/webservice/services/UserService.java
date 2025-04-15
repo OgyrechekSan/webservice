@@ -2,7 +2,10 @@ package com.example.webservice.services;
 
 import com.example.webservice.models.User;
 import com.example.webservice.models.enums.Role;
+import com.example.webservice.repositories.ImageRepository;
+import com.example.webservice.repositories.ProductRepository;
 import com.example.webservice.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,6 +25,8 @@ import java.util.stream.Collectors;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ProductRepository productRepository;
+    private final ImageRepository imageRepository;
 
     public boolean createUser(User user) {
         if (userRepository.findByEmail(user.getEmail()) != null) {
@@ -54,6 +59,7 @@ public class UserService {
         userRepository.save(user);
     }
 
+
     public void changeUserRoles(User user, Map<String, String> form) {
         Set<String> roles = Arrays.stream(Role.values())
                 .map(Role::name)
@@ -70,5 +76,23 @@ public class UserService {
     public User getUserByPrincipal(Principal principal) {
         if (principal == null) { return new User(); }
         return userRepository.findByEmail(principal.getName());
+    }
+
+    @Transactional
+    public void deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.isAdmin() && userRepository.countByRole(Role.ROLE_ADMIN) <= 1) {
+            throw new IllegalStateException("Cannot delete the last admin");
+        }
+
+        // Удаляем все связанные данные
+        productRepository.deleteAll(user.getProducts());
+        if (user.getAvatar() != null) {
+            imageRepository.delete(user.getAvatar());
+        }
+
+        userRepository.delete(user);
     }
 }
