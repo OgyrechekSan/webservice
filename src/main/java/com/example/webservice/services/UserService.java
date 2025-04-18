@@ -82,27 +82,37 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long userId) {
+        // Load the user with all necessary relationships
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
+        // Check if this is the last admin
         if (user.isAdmin() && userRepository.countByRole(Role.ROLE_ADMIN) <= 1) {
             throw new IllegalStateException("Cannot delete the last admin");
         }
 
-        // Удаляем все продукты пользователя и их изображения
-        for (Product product : user.getProducts()) {
-            // Удаляем все изображения продукта
+        // Explicitly load products to avoid LazyInitializationException
+        List<Product> products = productRepository.findByUser(user);
+
+        // Delete all products and their images
+        for (Product product : products) {
+            // Delete all images associated with the product
             imageRepository.deleteAll(product.getImages());
-            // Удаляем сам продукт
+            // Delete the product
             productRepository.delete(product);
         }
 
-        // Удаляем аватар пользователя, если он есть
+        // Delete user's avatar if exists
         if (user.getAvatar() != null) {
             imageRepository.delete(user.getAvatar());
         }
 
-        // Удаляем самого пользователя
+        // Clear roles to avoid constraint violations
+        user.getRoles().clear();
+        userRepository.saveAndFlush(user); // Ensure changes are flushed
+
+        // Finally delete the user
         userRepository.delete(user);
+        userRepository.flush(); // Force immediate execution
     }
 }
