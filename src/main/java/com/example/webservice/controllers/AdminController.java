@@ -40,8 +40,8 @@ public class AdminController {
 
     @GetMapping("/admin/user/edit/{user}")
     public String userEdit(@PathVariable ("user") User user, Model model, Principal principal) {
-        model.addAttribute("targetUser", user); // ← редактируемый
-        model.addAttribute("user", userService.getUserByPrincipal(principal)); // ← текущий залогиненный
+        model.addAttribute("targetUser", user);
+        model.addAttribute("user", userService.getUserByPrincipal(principal));
         model.addAttribute("roles", Role.values());
         return "user-edit";
     }
@@ -54,7 +54,7 @@ public class AdminController {
 
     @PostMapping("/admin/user/delete/{id}")
     public String adminDeleteUser(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        log.info("Trying to delete user with id: {}", id); // ← добавь это
+        log.info("Trying to delete user with id: {}", id);
         try {
             userService.deleteUser(id);
             redirectAttributes.addFlashAttribute("success", "User deleted successfully");
