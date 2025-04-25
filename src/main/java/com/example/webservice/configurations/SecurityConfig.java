@@ -34,11 +34,9 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/", "/product/**", "/images/**", "/registration", "/user/**",
-                                "/static/**")
-                        .permitAll()
-                        .anyRequest()
-                        .authenticated()
+                        .requestMatchers("/", "/product/**", "/images/**", "/registration",
+                                "/user/**", "/static/**", "/ws/**").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
@@ -47,6 +45,9 @@ public class SecurityConfig {
                 )
                 .logout(logout -> logout
                         .permitAll()
+                )
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/ws/**", "/api/ratings/**")
                 );
 
         return http.build();

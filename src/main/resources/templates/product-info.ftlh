@@ -12,7 +12,6 @@
         <div class="carousel-inner">
             <#list images as image>
                 <div class="carousel-item <#if image?is_first>active</#if>">
-                    <!-- Убрали SVG, оставили только img -->
                     <img class="d-block w-100" src="/images/${image.id}"
                          style="max-height: 500px; width: auto; object-fit: contain; margin: 0 auto;"
                          alt="Slide ${image?index + 1}">

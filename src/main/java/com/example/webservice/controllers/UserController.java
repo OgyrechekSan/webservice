@@ -1,7 +1,11 @@
 package com.example.webservice.controllers;
 
+import com.example.webservice.models.Product;
 import com.example.webservice.models.User;
+import com.example.webservice.repositories.ProductRepository;
 import com.example.webservice.repositories.UserRepository;
+import com.example.webservice.services.ProductService;
+import com.example.webservice.services.RatingService;
 import com.example.webservice.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,12 +21,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
+import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-    private final UserRepository userRepository;
+    private final ProductRepository productRepository;
+    private final RatingService ratingService;
 
     @GetMapping("/login")
     public String login(Principal principal, Model model) {
@@ -53,11 +59,18 @@ public class UserController {
         return "redirect:/login";
     }
 
-    @GetMapping("/user/{user}")
-    public String userInfo(@PathVariable("user") User user, Model model, Principal principal) {
+    @GetMapping("/user/{id}")
+    public String userInfo(@PathVariable Long id, Principal principal, Model model) {
+        User user = userService.getUserById(id);
+        User userByPrincipal = userService.getUserByPrincipal(principal);
+        List<Product> products = productRepository.findByUser(user);
+        RatingService.RatingStats ratingStats = ratingService.getRatingStats(id);
+
         model.addAttribute("user", user);
-        model.addAttribute("userByPrincipal", userService.getUserByPrincipal(principal));
-        model.addAttribute("products", user.getProducts());
+        model.addAttribute("userByPrincipal", userByPrincipal);
+        model.addAttribute("products", products);
+        model.addAttribute("ratingStats", ratingStats);
+
         return "user-info";
     }
 

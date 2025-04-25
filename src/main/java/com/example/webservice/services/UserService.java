@@ -115,4 +115,9 @@ public class UserService {
         userRepository.delete(user);
         userRepository.flush(); // Force immediate execution
     }
+
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+    }
 }
