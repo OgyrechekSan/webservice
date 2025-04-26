@@ -47,7 +47,7 @@ public class SecurityConfig {
                         .permitAll()
                 )
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/ws/**", "/api/ratings/**")
+                        .ignoringRequestMatchers("/ws/**", "/app/ratings/**")
                 );
 
         return http.build();

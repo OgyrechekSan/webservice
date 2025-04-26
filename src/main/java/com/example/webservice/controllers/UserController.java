@@ -70,9 +70,11 @@ public class UserController {
         model.addAttribute("userByPrincipal", userByPrincipal);
         model.addAttribute("products", products);
         model.addAttribute("ratingStats", ratingStats);
+        model.addAttribute("sellerId", id);
 
         return "user-info";
     }
+
 
     @PostMapping("/user/delete/{id}")
     public String selfDeleteUser(

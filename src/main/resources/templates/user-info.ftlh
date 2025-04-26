@@ -57,42 +57,51 @@
         </#list>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-    <script>
-        const sellerId = ${user.id};
+    <button class="btn btn-outline-success" onclick="rateUser('LIKE')">
+        <i class="fas fa-thumbs-up"></i>
+        <span id="likeCount">${ratingStats.likes!0}</span>
+    </button>
+    <button class="btn btn-outline-danger" onclick="rateUser('DISLIKE')">
+        <i class="fas fa-thumbs-down"></i>
+        <span id="dislikeCount">${ratingStats.dislikes!0}</span>
+    </button>
 
-        function updateRatingCounts(likes, dislikes) {
-            document.querySelector('.like-count').textContent = likes;
-            document.querySelector('.dislike-count').textContent = dislikes;
-        }
-        // WebSocket соединение
+    <!-- JavaScript для отправки лайков/дизлайков и обновления в реальном времени -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+    <script>
+        const sellerId = ${sellerId!0};
+        const currentUserId = ${(userByPrincipal.id)!0};
+
+        // Инициализация WebSocket
         const socket = new SockJS('/ws');
         const stompClient = Stomp.over(socket);
 
-        stompClient.connect({}, function() {
-            stompClient.subscribe(`/topic/ratings/${sellerId}`, function(message) {
-                const data = JSON.parse(message.body);
-                updateRatingCounts(data.likes, data.dislikes);
-            });
-        }, function(error) {
-            console.error('WebSocket Error:', error);
-        });
+        // Объявляем функцию глобально, чтобы она была доступна в onclick
+        window.rateUser = function(type) {
+            if (!stompClient.connected) {
+                alert("Подождите, соединение устанавливается...");
+                return;
+            }
 
-        function rateUser(type) {
-            fetch(`/api/ratings/rate/${sellerId}?type=${type}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]').value
-                }
-            })
-                .then(response => {
-                    if (!response.ok) throw new Error('Rating failed');
-                    return response.json();
-                })
-                .then(data => updateRatingCounts(data.likes, data.dislikes))
-                .catch(error => console.error('Error:', error));
-        }
+            stompClient.send("/app/rate", {}, JSON.stringify({
+                userId: currentUserId,
+                sellerId: sellerId,
+                type: type
+            }));
+        };
+
+        // Подключаемся к WebSocket
+        stompClient.connect({}, function() {
+            console.log("WebSocket подключен!");
+
+            stompClient.subscribe('/topic/ratings/' + sellerId, function(message) {
+                const stats = JSON.parse(message.body);
+                document.getElementById('likeCount').textContent = stats.likes;
+                document.getElementById('dislikeCount').textContent = stats.dislikes;
+            });
+        });
     </script>
+
 </@t.template>
