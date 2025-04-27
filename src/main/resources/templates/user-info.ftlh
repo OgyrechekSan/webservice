@@ -12,19 +12,22 @@
         Номер телефона: <b>${user.phoneNumber}</b>
 
         <div class="rating-container mt-3">
-            <button class="btn btn-outline-success like-btn" onclick="rateUser('LIKE')">
+            <button class="btn btn-outline-success like-btn" onclick="sendAction('LIKE')">
                 <i class="fas fa-thumbs-up"></i>
-                <span class="like-count">${ratingStats.likes!0}</span>
+                <span id="likeCount">${ratingStats.likes!0}</span>
             </button>
-            <button class="btn btn-outline-danger dislike-btn" onclick="rateUser('DISLIKE')">
+            <button class="btn btn-outline-danger dislike-btn" onclick="sendAction('DISLIKE')">
                 <i class="fas fa-thumbs-down"></i>
-                <span class="dislike-count">${ratingStats.dislikes!0}</span>
+                <span id="dislikeCount">${ratingStats.dislikes!0}</span>
             </button>
         </div>
 
-        <#if userByPrincipal.isAdmin() || userByPrincipal.id == user.id>
+        <!-- ?string чтобы сравнивать строки и не возникало ошибки про несоотвествие типов -->
+        <#if userByPrincipal?? && (userByPrincipal.isAdmin() || (userByPrincipal.id?? && (userByPrincipal.id?string) == (user.id?string)) )>
+
             <div class="mt-4">
-                <form action="/user/delete/${user.id}" method="post" onsubmit="return confirm('Вы точно хотите удалить этот аккаунт?')">
+                <form action="/user/delete/${user.id}" method="post" onsubmit="
+                return confirm('Вы точно хотите удалить этот аккаунт?')">
                     <input type="hidden" name="_csrf" value="${_csrf.token}">
                     <button type="submit" class="btn btn-danger">
                         <i class="fas fa-trash-alt"></i> Удалить аккаунт
@@ -57,42 +60,45 @@
         </#list>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-    <script>
-        const sellerId = ${user.id};
+    <!-- подключаем FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-        function updateRatingCounts(likes, dislikes) {
-            document.querySelector('.like-count').textContent = likes;
-            document.querySelector('.dislike-count').textContent = dislikes;
-        }
-        // WebSocket соединение
+    <!-- Подключение SockJS и StompJS -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+    <script>
+        // Берем sellerId и userId из модели
+        const sellerId = "${sellerId}";
+        const currentUserId = "${(userByPrincipal.id)!''}";
+
+        // Инициализация WebSocket
         const socket = new SockJS('/ws');
         const stompClient = Stomp.over(socket);
 
-        stompClient.connect({}, function() {
-            stompClient.subscribe(`/topic/ratings/${sellerId}`, function(message) {
+        stompClient.connect({}, () => {
+            console.log('Connected to WebSocket');
+
+            // Подписка на канал продавца
+            stompClient.subscribe(`/topic/ratings/${sellerId}`, (message) => {
                 const data = JSON.parse(message.body);
-                updateRatingCounts(data.likes, data.dislikes);
+                document.getElementById('likeCount').textContent = data.likes;
+                document.getElementById('dislikeCount').textContent = data.dislikes;
             });
-        }, function(error) {
-            console.error('WebSocket Error:', error);
         });
 
-        function rateUser(type) {
-            fetch(`/api/ratings/rate/${sellerId}?type=${type}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('input[name="_csrf"]').value
-                }
-            })
-                .then(response => {
-                    if (!response.ok) throw new Error('Rating failed');
-                    return response.json();
-                })
-                .then(data => updateRatingCounts(data.likes, data.dislikes))
-                .catch(error => console.error('Error:', error));
+        // Функция отправки лайка или дизлайка
+        function sendAction(type) {
+            if(!currentUserId || currentUserId === '') {
+                alert("Пожалуйста, войдите в аккаунт, чтобы оценить продавца!");
+                return;
+            }
+            const message = {
+                userId: currentUserId,
+                sellerId: sellerId,
+                type: type
+            };
+            stompClient.send("/app/rate", {}, JSON.stringify(message));
         }
     </script>
 </@t.template>

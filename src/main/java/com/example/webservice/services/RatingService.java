@@ -15,10 +15,10 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class RatingService {
     private final RatingRepository ratingRepository;
 
-    @Transactional
     public RatingStats rateUser(User user, User seller, RatingType type) {
         Optional<Rating> existingRating = ratingRepository.findByUserAndSeller(user, seller);
 

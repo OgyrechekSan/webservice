@@ -19,7 +19,8 @@ public class ProductController {//отвечает за приёмы http зап
     private final ProductService productService;//final чтобы spring при создании бина сразу его инджектит
 
     @GetMapping("/")//при переходе на локальный хост будет вызываться данный метод
-    public String products(@RequestParam(name = "searchWord", required = false) String title, Principal principal,Model model){//для передачи параметров в шаблонизатор
+    public String products(@RequestParam(name = "searchWord", required = false) String title,
+                           Principal principal,Model model){//для передачи параметров в шаблонизатор
         model.addAttribute("products", productService.listProducts(title));
         model.addAttribute("user", productService.getUserByPrincipal(principal));
         model.addAttribute("searchWord", title);

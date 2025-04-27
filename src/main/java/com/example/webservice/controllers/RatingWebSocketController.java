@@ -15,6 +15,7 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 @RequiredArgsConstructor
+@Slf4j
 public class RatingWebSocketController {
     private final SimpMessagingTemplate messagingTemplate;
     private final RatingService ratingService;
@@ -22,11 +23,23 @@ public class RatingWebSocketController {
 
     @MessageMapping("/rate")
     public void handleRating(RatingMessage message) {
-        User user = userService.getUserById(message.getUserId());
-        User seller = userService.getUserById(message.getSellerId());
+        try {
+            log.info("Received rating: {}", message);
+            User user = userService.getUserById(message.getUserId());
+            User seller = userService.getUserById(message.getSellerId());
 
-        RatingService.RatingStats stats = ratingService.rateUser(user, seller, message.getType());
-        messagingTemplate.convertAndSend("/topic/ratings/" + message.getSellerId(), stats);
+            if(user.getId().equals(seller.getId())) {
+                log.warn("User cannot rate themselves");
+                return;
+            }
+
+            RatingService.RatingStats stats = ratingService.rateUser(user, seller, message.getType());
+            messagingTemplate.convertAndSend("/topic/ratings/" + message.getSellerId(), stats);
+            log.info("Sent update to /topic/ratings/{}: {}", message.getSellerId(), stats);
+        } catch (Exception e) {
+            log.error("Rating error", e);
+        }
+
     }
 
     @Data
