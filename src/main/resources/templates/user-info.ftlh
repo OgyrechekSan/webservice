@@ -22,8 +22,9 @@
             </button>
         </div>
 
+        <!-- ?string чтобы сравнивать строки и не возникало ошибки про несоотвествие типов -->
+        <#if userByPrincipal?? && (userByPrincipal.isAdmin() || (userByPrincipal.id?? && (userByPrincipal.id?string) == (user.id?string)) )>
 
-        <#if userByPrincipal.isAdmin() || userByPrincipal.id == user.id>
             <div class="mt-4">
                 <form action="/user/delete/${user.id}" method="post" onsubmit="
                 return confirm('Вы точно хотите удалить этот аккаунт?')">
@@ -59,8 +60,7 @@
         </#list>
     </div>
 
-
-    <!-- Обязательно подключаем FontAwesome -->
+    <!-- подключаем FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <!-- Подключение SockJS и StompJS -->
@@ -70,7 +70,7 @@
     <script>
         // Берем sellerId и userId из модели
         const sellerId = "${sellerId}";
-        const currentUserId = "${userByPrincipal.id}";
+        const currentUserId = "${(userByPrincipal.id)!''}";
 
         // Инициализация WebSocket
         const socket = new SockJS('/ws');
@@ -89,6 +89,10 @@
 
         // Функция отправки лайка или дизлайка
         function sendAction(type) {
+            if(!currentUserId || currentUserId === '') {
+                alert("Пожалуйста, войдите в аккаунт, чтобы оценить продавца!");
+                return;
+            }
             const message = {
                 userId: currentUserId,
                 sellerId: sellerId,
@@ -97,5 +101,4 @@
             stompClient.send("/app/rate", {}, JSON.stringify(message));
         }
     </script>
-
 </@t.template>
