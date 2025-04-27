@@ -12,19 +12,21 @@
         Номер телефона: <b>${user.phoneNumber}</b>
 
         <div class="rating-container mt-3">
-            <button class="btn btn-outline-success like-btn" onclick="rateUser('LIKE')">
+            <button class="btn btn-outline-success like-btn" onclick="sendAction('LIKE')">
                 <i class="fas fa-thumbs-up"></i>
-                <span class="like-count">${ratingStats.likes!0}</span>
+                <span id="likeCount">${ratingStats.likes!0}</span>
             </button>
-            <button class="btn btn-outline-danger dislike-btn" onclick="rateUser('DISLIKE')">
+            <button class="btn btn-outline-danger dislike-btn" onclick="sendAction('DISLIKE')">
                 <i class="fas fa-thumbs-down"></i>
-                <span class="dislike-count">${ratingStats.dislikes!0}</span>
+                <span id="dislikeCount">${ratingStats.dislikes!0}</span>
             </button>
         </div>
 
+
         <#if userByPrincipal.isAdmin() || userByPrincipal.id == user.id>
             <div class="mt-4">
-                <form action="/user/delete/${user.id}" method="post" onsubmit="return confirm('Вы точно хотите удалить этот аккаунт?')">
+                <form action="/user/delete/${user.id}" method="post" onsubmit="
+                return confirm('Вы точно хотите удалить этот аккаунт?')">
                     <input type="hidden" name="_csrf" value="${_csrf.token}">
                     <button type="submit" class="btn btn-danger">
                         <i class="fas fa-trash-alt"></i> Удалить аккаунт
@@ -57,51 +59,43 @@
         </#list>
     </div>
 
-    <button class="btn btn-outline-success" onclick="rateUser('LIKE')">
-        <i class="fas fa-thumbs-up"></i>
-        <span id="likeCount">${ratingStats.likes!0}</span>
-    </button>
-    <button class="btn btn-outline-danger" onclick="rateUser('DISLIKE')">
-        <i class="fas fa-thumbs-down"></i>
-        <span id="dislikeCount">${ratingStats.dislikes!0}</span>
-    </button>
 
-    <!-- JavaScript для отправки лайков/дизлайков и обновления в реальном времени -->
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <!-- Обязательно подключаем FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Подключение SockJS и StompJS -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 
     <script>
-        const sellerId = ${sellerId!0};
-        const currentUserId = ${(userByPrincipal.id)!0};
+        // Берем sellerId и userId из модели
+        const sellerId = "${sellerId}";
+        const currentUserId = "${userByPrincipal.id}";
 
         // Инициализация WebSocket
         const socket = new SockJS('/ws');
         const stompClient = Stomp.over(socket);
 
-        // Объявляем функцию глобально, чтобы она была доступна в onclick
-        window.rateUser = function(type) {
-            if (!stompClient.connected) {
-                alert("Подождите, соединение устанавливается...");
-                return;
-            }
+        stompClient.connect({}, () => {
+            console.log('Connected to WebSocket');
 
-            stompClient.send("/app/rate", {}, JSON.stringify({
+            // Подписка на канал продавца
+            stompClient.subscribe(`/topic/ratings/${sellerId}`, (message) => {
+                const data = JSON.parse(message.body);
+                document.getElementById('likeCount').textContent = data.likes;
+                document.getElementById('dislikeCount').textContent = data.dislikes;
+            });
+        });
+
+        // Функция отправки лайка или дизлайка
+        function sendAction(type) {
+            const message = {
                 userId: currentUserId,
                 sellerId: sellerId,
                 type: type
-            }));
-        };
-
-        // Подключаемся к WebSocket
-        stompClient.connect({}, function() {
-            console.log("WebSocket подключен!");
-
-            stompClient.subscribe('/topic/ratings/' + sellerId, function(message) {
-                const stats = JSON.parse(message.body);
-                document.getElementById('likeCount').textContent = stats.likes;
-                document.getElementById('dislikeCount').textContent = stats.dislikes;
-            });
-        });
+            };
+            stompClient.send("/app/rate", {}, JSON.stringify(message));
+        }
     </script>
 
 </@t.template>

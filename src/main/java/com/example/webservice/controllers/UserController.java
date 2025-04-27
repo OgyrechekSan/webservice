@@ -92,9 +92,11 @@ public class UserController {
             userService.deleteUser(id);
             // Явный выход и редирект
             new SecurityContextLogoutHandler().logout(request, response, null);
-            return "redirect:/login?message=" + URLEncoder.encode("Ваш аккаунт успешно удалён", StandardCharsets.UTF_8);
+            return "redirect:/login?message=" +
+                    URLEncoder.encode("Ваш аккаунт успешно удалён", StandardCharsets.UTF_8);
         } catch (Exception e) {
-            return "redirect:/profile?error=" + URLEncoder.encode("Ошибка при удалении аккаунта: " + e.getMessage(), StandardCharsets.UTF_8);
+            return "redirect:/profile?error=" + URLEncoder.encode("Ошибка при удалении аккаунта: "
+                    + e.getMessage(), StandardCharsets.UTF_8);
         }
     }
 }

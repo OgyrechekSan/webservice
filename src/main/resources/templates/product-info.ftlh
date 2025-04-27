@@ -4,7 +4,8 @@
         <!-- Индикаторы -->
         <ol class="carousel-indicators">
             <#list images as image>
-                <li data-target="#myCarousel" data-slide-to="${image?index}" <#if image?is_first>class="active"</#if>></li>
+                <li data-target="#myCarousel" data-slide-to="${image?index}"
+                    <#if image?is_first>class="active"</#if>></li>
             </#list>
         </ol>
 
@@ -37,7 +38,8 @@
     <hr>
     <p style="text-align: center">
         <a href="/user/${authorProduct.id}">
-            <img src="/static/images/avatar.png" alt="mdo" width="32" height="32" class="rounded-circle"> ${authorProduct.name}
+            <img src="/static/images/avatar.png" alt="mdo" width="32" height="32" class="rounded-circle">
+            ${authorProduct.name}
         </a>
     </p>
 

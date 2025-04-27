@@ -62,7 +62,8 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         } catch (Exception e) {
             log.error("Error deleting user", e);
-            redirectAttributes.addFlashAttribute("error", "Error deleting user: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error",
+                    "Error deleting user: " + e.getMessage());
         }
         return "redirect:/admin";
     }

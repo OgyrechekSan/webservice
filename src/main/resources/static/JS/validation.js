@@ -101,7 +101,8 @@ document.getElementById('signUpForm').addEventListener('submit',function(event){
     }
 })
 
-document.getElementById('loginForm').addEventListener('submit', function (event) {
+document.getElementById('loginForm').addEventListener('submit', function (event)
+{
     event.preventDefault();
 
     if (validation(this) == true) {
