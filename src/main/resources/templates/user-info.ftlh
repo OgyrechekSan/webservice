@@ -23,7 +23,8 @@
         </div>
 
         <!-- ?string чтобы сравнивать строки и не возникало ошибки про несоотвествие типов -->
-        <#if userByPrincipal?? && (userByPrincipal.isAdmin() || (userByPrincipal.id?? && (userByPrincipal.id?string) == (user.id?string)) )>
+        <#if userByPrincipal?? && (userByPrincipal.isAdmin() ||
+        (userByPrincipal.id?? && (userByPrincipal.id?string) == (user.id?string)) )>
 
             <div class="mt-4">
                 <form action="/user/delete/${user.id}" method="post" onsubmit="
