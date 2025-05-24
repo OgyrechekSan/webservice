@@ -5,18 +5,19 @@ on:
     branches:
       - main
       - master
+
 jobs:
   run-unit-tests:
     runs-on: self-hosted
     steps:
       - name: Checkout
-      - uses: actions/checkout@v3
+        uses: actions/checkout@v3
 
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
           java-version: 21
-          distribution: 'adopt'
+          distribution: 'temurin'
 
       - name: Setup Maven
         uses: stCarolas/setup-maven@v4.4
@@ -27,23 +28,22 @@ jobs:
         run: mvn clean package
 
       - name: Rename the artifact
-        run: cp terget/webservice.jar webservice-${{ github.sha }}.jar
+        run: cp target/webservice.jar webservice-${{ github.sha }}.jar
 
       - name: Save the artifact
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v3
         with:
           name: webservice
           path: webservice-${{ github.sha }}.jar
 
-fake-deploy:
-  runs-on: self-hosted
-  needs: run-unit-tests
-  steps:
-    - name: Get the artifact
-      uses: actions/download-artifact@master
-      with:
-        name: webservice
+  fake-deploy:
+    runs-on: self-hosted
+    needs: run-unit-tests
+    steps:
+      - name: Get the artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: webservice
 
-    - name: Fake deploy
-      run: ls webservice*.jar
-
+      - name: Fake deploy
+        run: ls webservice*.jar
