@@ -28,13 +28,14 @@ jobs:
 
       - name: Prepare Docker context
         run: |
-          mkdir -p docker-context
-          copy target\webservice.jar docker-context\webservice.jar
-          copy Dockerfile docker-context\Dockerfile
+          New-Item -ItemType Directory -Force -Path docker-context
+          Copy-Item target\webservice.jar -Destination docker-context\webservice.jar
+          Copy-Item Dockerfile -Destination docker-context\Dockerfile
 
       - name: Build Docker image
         run: |
-          docker build -t my-webservice:${{ github.sha }} ./docker-context
+          docker build -t my-webservice:${{ github.sha }} -t my-webservice:latest ./docker-context
+      
 
       - name: Show image list
         run: docker images | findstr my-webservice
