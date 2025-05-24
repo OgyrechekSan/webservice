@@ -1,0 +1,48 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - master
+jobs:
+  run-unit-tests:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+      - uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: 21
+          distribution: 'adopt'
+
+      - name: Setup Maven
+        uses: stCarolas/setup-maven@v4.4
+        with:
+          maven-version: 4.0.0
+
+      - name: Unit Tests
+        run: mvn clean package
+
+      - name: Rename the artifact
+        run: cp terget/webservice.jar webservice-${{ github.sha }}.jar
+
+      - name: Save the artifact
+        uses: actions/upload-artifact@master
+        with:
+          name: webservice
+          path: webservice-${{ github.sha }}.jar
+
+fake-deploy:
+  runs-on: self-hosted
+  needs: run-unit-tests
+  steps:
+    - name: Get the artifact
+      uses: actions/download-artifact@master
+      with:
+        name: webservice
+
+    - name: Fake deploy
+      run: ls webservice*.jar
