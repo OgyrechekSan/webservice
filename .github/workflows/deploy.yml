@@ -46,3 +46,4 @@ fake-deploy:
 
     - name: Fake deploy
       run: ls webservice*.jar
+
