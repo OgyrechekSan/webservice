@@ -2,13 +2,12 @@ name: Deploy
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [main, master]
 
 jobs:
-  run-unit-tests:
+  build-and-package:
     runs-on: self-hosted
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -24,26 +23,18 @@ jobs:
         with:
           maven-version: 4.0.0
 
-      - name: Unit Tests
+      - name: Build JAR
         run: mvn clean package
 
-      - name: Rename the artifact
-        run: cp target/webservice.jar webservice-${{ github.sha }}.jar
+      - name: Prepare Docker context
+        run: |
+          mkdir -p docker-context
+          copy target\webservice.jar docker-context\webservice.jar
+          copy Dockerfile docker-context\Dockerfile
 
-      - name: Save the artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: webservice
-          path: webservice-${{ github.sha }}.jar
+      - name: Build Docker image
+        run: |
+          docker build -t my-webservice:${{ github.sha }} ./docker-context
 
-  fake-deploy:
-    runs-on: self-hosted
-    needs: run-unit-tests
-    steps:
-      - name: Get the artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: webservice
-
-      - name: Fake deploy
-        run: ls webservice*.jar
+      - name: Show image list
+        run: docker images | findstr webservice
