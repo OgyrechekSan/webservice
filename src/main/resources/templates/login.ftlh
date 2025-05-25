@@ -8,7 +8,7 @@
             <input type="email" class="form-control <#if RequestParameters.error??>is-invalid</#if>"
                    id="email" name="username">
             <div id="email" class="invalid-feedback">
-                Неверныя электронная почта
+                Неверная электронная почта
             </div>
         </div>
         <div class="form-group">
