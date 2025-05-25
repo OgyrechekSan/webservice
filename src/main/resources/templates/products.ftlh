@@ -10,6 +10,9 @@
                     <option value="Москва">Москва</option>
                     <option value="Красноярск">Красноярск</option>
                     <option value="Казань">Казань</option>
+                    <option value="Набережные Челны">Набережные челны</option>
+                    <option value="Тамбов">Тамбов</option>
+                    <option value="Рассказово">Тамбов</option>
                 </select>
             </div>
             <div class="form-group col-md-10">
