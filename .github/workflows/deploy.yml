@@ -34,8 +34,8 @@ jobs:
           cp Dockerfile docker-context/Dockerfile
 
       - name: Build Docker image
-        run: |
-          docker build -t my-webservice:${{ github.sha }} -t my-webservice:latest ./docker-context
+        run: docker build -t my-webservice:latest .
+
       
       
 
