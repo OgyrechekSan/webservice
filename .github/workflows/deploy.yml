@@ -23,18 +23,22 @@ jobs:
         with:
           maven-version: 3.9.6
 
-      - name: Build JAR
+      - name: Build with Maven
         run: mvn clean package
+
+      - name: List target directory
+        run: ls -la target
 
       - name: Prepare Docker context
         run: |
-          New-Item -ItemType Directory -Force -Path docker-context
-          Copy-Item target\webservice.jar -Destination docker-context\webservice.jar
-          Copy-Item Dockerfile -Destination docker-context\Dockerfile
+          mkdir -p docker-context
+          cp target/webservice.jar docker-context/webservice.jar
+          cp Dockerfile docker-context/Dockerfile
 
       - name: Build Docker image
         run: |
           docker build -t my-webservice:${{ github.sha }} -t my-webservice:latest ./docker-context
+      
       
 
       - name: Show image list
