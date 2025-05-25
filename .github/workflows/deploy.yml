@@ -27,7 +27,9 @@ jobs:
         run: mvn clean package
 
       - name: List target directory
-        run: ls -la target
+        run: Get-ChildItem -Recurse .\target
+        shell: pwsh
+
 
       - name: Prepare Docker context
         run: |
