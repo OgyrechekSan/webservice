@@ -25,7 +25,7 @@ public class Image {
     private String contentType;
     @Column(name = "isPreviewImage")
     private boolean isPreviewImage;
-    @Column(columnDefinition = "LONGBLOB")
+    @Column(columnDefinition = "BYTEA")
     private byte[] bytes;//это поле будет хранится в LONGBLOB
 
     @ManyToOne(fetch = FetchType.LAZY)
